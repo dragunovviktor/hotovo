@@ -514,6 +514,9 @@ def get_all_objects(db: Session = Depends(get_db)):
 
     return result
 
+@app.get("/api_ui_for_users", include_in_schema=False)
+async def get_api_info(request: Request):
+    return templates.TemplateResponse("api_ui_for_users.html", {"request": request})
 
 @app.post("/api/maintenance", response_model=MaintenancePlanResponse)
 def create_maintenance_plan(plan: MaintenancePlanCreate, db: Session = Depends(get_db)):
