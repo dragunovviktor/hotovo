@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервис управления ВСП | СберБанк</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/fixedcolumns/3.3.3/css/fixedColumns.dataTables.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --sber-primary: #21A038;
+            --sber-primary-dark: #1A8030;
+            --sber-secondary: #09a817;
+            --sber-light: #F5F7FA;
+            --sber-dark: #2D3748;
+            --sber-gray: #E2E8F0;
+            --sber-text: #1A202C;
+        }
+
+        body {
+            font-family: 'SBSansText', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--sber-light);
+            color: var(--sber-text);
+            padding: 0;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .sber-header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+
+        .sber-title {
+            color: var(--sber-primary);
+            font-weight: 600;
+            margin-left: 15px;
+            font-size: 1.5rem;
+        }
+
+        .sber-card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            background-color: white;
+        }
+
+        .sber-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .sber-card-header {
+            background-color: var(--sber-primary);
+            color: white;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 16px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .sber-card-header i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .btn-sber-primary {
+            background-color: var(--sber-primary);
+            border-color: var(--sber-primary);
+            color: white;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-sber-primary:hover {
+            background-color: var(--sber-primary-dark);
+            border-color: var(--sber-primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-sber-outline {
+            border: 1px solid var(--sber-primary);
+            color: var(--sber-primary);
+            background-color: transparent;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-sber-outline:hover {
+            background-color: rgba(33, 160, 56, 0.1);
+            color: var(--sber-primary-dark);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--sber-text);
+            font-weight: 500;
+            border: none;
+            padding: 12px 20px;
+            margin-right: 5px;
+            border-radius: 8px 8px 0 0;
+            background-color: transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-tabs .nav-link:hover {
+            background-color: rgba(33, 160, 56, 0.1);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--sber-primary);
+            background-color: white;
+            font-weight: 600;
+            border-bottom: 3px solid var(--sber-primary);
+        }
+
+        .tab-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 10px 15px;
+            border: 1px solid var(--sber-gray);
+            transition: all 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--sber-primary);
+            box-shadow: 0 0 0 3px rgba(33, 160, 56, 0.2);
+        }
+
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background-color: var(--sber-primary);
+            color: white;
+            font-weight: 600;
+            padding: 12px 15px;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(33, 160, 56, 0.05);
+        }
+
+        .table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .loading-spinner .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.25em;
+            color: var(--sber-primary);
+        }
+
+        .loading-spinner p {
+            margin-top: 15px;
+            color: var(--sber-text);
+            font-weight: 500;
+        }
+
+        .badge-sber {
+            background-color: var(--sber-primary);
+            color: white;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* Модальное окно */
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            background-color: var(--sber-primary);
+            color: white;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 16px 20px;
+        }
+
+        .modal-title {
+            font-weight: 600;
+        }
+
+        /* Drag and drop зона */
+        .drop-zone {
+            border: 2px dashed var(--sber-primary);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background-color: rgba(33, 160, 56, 0.05);
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone:hover {
+            background-color: rgba(33, 160, 56, 0.1);
+        }
+
+        .drop-zone.active {
+            border-color: var(--sber-primary-dark);
+            background-color: rgba(33, 160, 56, 0.15);
+        }
+
+        .file-info {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            background-color: var(--sber-primary);
+            transition: width 0.3s ease;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        /* Стили для модального окна с изображением */
+        .modal-image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+
+        .modal-fullscreen .modal-dialog {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .modal-fullscreen .modal-content {
+            height: 100%;
+            border-radius: 0;
+        }
+
+        .modal-fullscreen .modal-body {
+            overflow-y: auto;
+        }
+
+        /* Стили для миниатюр изображений */
+        .thumbnail-container {
+            width: 100px;
+            height: 60px;
+            overflow: hidden;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+        }
+
+        .thumbnail-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .thumbnail-img:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="sber-header">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <h1 class="sber-title mb-0">Сервис управления ВСП</h1>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mb-5">
+        <!-- Навигационные вкладки -->
+        <ul class="nav nav-tabs" id="apiTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="branches-tab" data-bs-toggle="tab" data-bs-target="#branches" type="button" role="tab">
+                    <i class="fas fa-building me-2"></i>ВСП
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="objects-tab" data-bs-toggle="tab" data-bs-target="#objects" type="button" role="tab">
+                    <i class="fas fa-layer-group me-2"></i>Объекты
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="plans-tab" data-bs-toggle="tab" data-bs-target="#plans" type="button" role="tab">
+                    <i class="fas fa-calendar-alt me-2"></i>Планы работ
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="works-tab" data-bs-toggle="tab" data-bs-target="#works" type="button" role="tab">
+                    <i class="fas fa-check-circle me-2"></i>Выполненные работы
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="attachments-tab" data-bs-toggle="tab" data-bs-target="#attachments" type="button" role="tab">
+                    <i class="fas fa-paperclip me-2"></i>Вложения
+                </button>
+            </li>
+        </ul>
+
+        <!-- Содержимое вкладок -->
+        <div class="tab-content" id="apiTabsContent">
+            <!-- Вкладка ВСП -->
+            <div class="tab-pane fade show active" id="branches" role="tabpanel">
+                <div class="search-container fade-in">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                                <input type="text" id="branchSearch" class="form-control" placeholder="Поиск по адресу или коду ВСП...">
+                                <button class="btn btn-sber-primary" id="searchBranchesBtn">
+                                    <i class="fas fa-search me-2"></i>Найти
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <button class="btn btn-sber-outline" id="getAllBranchesBtn">
+                                <i class="fas fa-list me-2"></i>Все ВСП
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading-spinner" id="branchesLoading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <p>Загрузка данных о ВСП...</p>
+                </div>
+
+                <div class="table-responsive fade-in">
+                    <table id="branchesTable" class="table table-hover" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Код ВСП</th>
+                                <th>Адрес</th>
+                                <th>Ответственный СМ</th>
+                                <th>Площадь (документы)</th>
+                                <th>Площадь ЛЕТО</th>
+                                <th>Площадь ЗИМА</th>
+                                <th>Доп. территория (муниципалитет)</th>
+                                <th>Доп. территория (клиент)</th>
+                                <th>Схема</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Вкладка Импорт Excel -->
+            <div class="tab-pane fade" id="import" role="tabpanel">
+                <div class="card sber-card fade-in">
+                    <div class="sber-card-header">
+                        <i class="fas fa-file-excel"></i>
+                        <h5 class="mb-0">Импорт данных из Excel</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs mb-4" id="importTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="territories-tab" data-bs-toggle="tab" data-bs-target="#territoriesImport" type="button" role="tab">
+                                    <i class="fas fa-map-marked-alt me-2"></i>Территории ВСП
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="objects-tab" data-bs-toggle="tab" data-bs-target="#objectsImport" type="button" role="tab">
+                                    <i class="fas fa-layer-group me-2"></i>Объекты ВСП
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="importTabsContent">
+                            <!-- Вкладка импорта территорий -->
+                            <div class="tab-pane fade show active" id="territoriesImport" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="drop-zone" id="territoriesDropZone">
+                                            <i class="fas fa-file-upload"></i>
+                                            <h5>Перетащите файл Excel с территориями</h5>
+                                            <p>или</p>
+                                            <button class="btn btn-sber-primary" id="selectTerritoriesFileBtn">
+                                                <i class="fas fa-folder-open me-2"></i>Выберите файл
+                                            </button>
+                                            <input type="file" id="territoriesFileInput" accept=".xlsx,.xls" style="display: none;">
+                                        </div>
+
+                                        <div class="file-info" id="territoriesFileInfo">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-file-excel file-info-icon"></i>
+                                                <div>
+                                                    <h6 id="territoriesFileName" class="mb-0"></h6>
+                                                    <small id="territoriesFileSize" class="text-muted"></small>
+                                                </div>
+                                            </div>
+                                            <div class="progress">
+                                                <div id="territoriesUploadProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <button class="btn btn-sber-outline btn-sm" id="cancelTerritoriesUploadBtn">
+                                                    <i class="fas fa-times me-1"></i>Отмена
+                                                </button>
+                                                <button class="btn btn-sber-primary btn-sm" id="uploadTerritoriesBtn">
+                                                    <i class="fas fa-upload me-1"></i>Загрузить
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="alert alert-info">
+                                            <h5><i class="fas fa-info-circle me-2"></i>Формат файла территорий</h5>
+                                            <p>Для загрузки данных подготовьте Excel файл в следующем формате:</p>
+                                            <ul>
+                                                <li><strong>№ ВСП</strong> - код отделения</li>
+                                                <li><strong>Адрес</strong> - адрес отделения</li>
+                                                <li><strong>Ответственный СМ</strong> - ФИО ответственного</li>
+                                                <li><strong>Площадь (документы)</strong> - площадь по документам</li>
+                                                <li><strong>Площадь ЛЕТО</strong> - летняя площадь</li>
+                                                <li><strong>Площадь ЗИМА</strong> - зимняя площадь</li>
+                                                <li><strong>Доп. территория (муниципалитет)</strong></li>
+                                                <li><strong>Доп. территория (клиент)</strong></li>
+                                            </ul>
+                                            <p class="mt-2"><strong>Схемы:</strong> Вы можете вставить изображения схем непосредственно в Excel файл.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Вкладка импорта объектов -->
+                            <div class="tab-pane fade" id="objectsImport" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="drop-zone" id="objectsDropZone">
+                                            <i class="fas fa-file-upload"></i>
+                                            <h5>Перетащите файл Excel с объектами</h5>
+                                            <p>или</p>
+                                            <button class="btn btn-sber-primary" id="selectObjectsFileBtn">
+                                                <i class="fas fa-folder-open me-2"></i>Выберите файл
+                                            </button>
+                                            <input type="file" id="objectsFileInput" accept=".xlsx,.xls" style="display: none;">
+                                        </div>
+
+                                        <div class="file-info" id="objectsFileInfo">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-file-excel file-info-icon"></i>
+                                                <div>
+                                                    <h6 id="objectsFileName" class="mb-0"></h6>
+                                                    <small id="objectsFileSize" class="text-muted"></small>
+                                                </div>
+                                            </div>
+                                            <div class="progress">
+                                                <div id="objectsUploadProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <button class="btn btn-sber-outline btn-sm" id="cancelObjectsUploadBtn">
+                                                    <i class="fas fa-times me-1"></i>Отмена
+                                                </button>
+                                                <button class="btn btn-sber-primary btn-sm" id="uploadObjectsBtn">
+                                                    <i class="fas fa-upload me-1"></i>Загрузить
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="alert alert-info">
+                                            <h5><i class="fas fa-info-circle me-2"></i>Формат файла объектов</h5>
+                                            <p>Для загрузки данных подготовьте Excel файл в следующем формате:</p>
+                                            <ul>
+                                                <li><strong>№ ВСП</strong> - код отделения</li>
+                                                <li><strong>Адрес</strong> - адрес отделения</li>
+                                                <li><strong>Ответственный СМ</strong> - ФИО ответственного</li>
+                                                <li><strong>Зона</strong> - зона объекта (ЗСО, крыльцо и т.д.)</li>
+                                                <li><strong>Тип поверхности</strong> - тип поверхности объекта</li>
+                                                <li><strong>Вид работ</strong> - тип выполняемых работ</li>
+                                                <li><strong>Ед.изм</strong> - единицы измерения</li>
+                                                <li><strong>Объем работ</strong> - объем работ</li>
+                                                <li><strong>Период выполнения работ</strong> - квартал/год выполнения</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вкладка Объекты -->
+            <div class="tab-pane fade" id="objects" role="tabpanel">
+                <div class="search-container fade-in">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                                <input type="text" id="branchCodeForObjects" class="form-control" placeholder="Введите код ВСП...">
+                                <button class="btn btn-sber-primary" id="getObjectsBtn">
+                                    <i class="fas fa-search me-2"></i>Найти объекты
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <button class="btn btn-sber-outline" id="getAllObjectsBtn">
+                                <i class="fas fa-list me-2"></i>Показать все объекты
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading-spinner" id="objectsLoading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <p>Загрузка данных об объектах...</p>
+                </div>
+
+                <div class="table-responsive fade-in">
+                    <table id="objectsTable" class="table table-hover" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>№ ВСП</th>
+                                <th>Адрес</th>
+                                <th>Ответственный СМ</th>
+                                <th>Зона</th>
+                                <th>Тип поверхности</th>
+                                <th>Вид работ</th>
+                                <th>Ед.изм</th>
+                                <th>Объем работ</th>
+                                <th>Период выполнения работ</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Вкладка Планы работ -->
+            <div class="tab-pane fade" id="plans" role="tabpanel">
+                <div class="search-container fade-in">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                                <input type="text" id="branchCodeForPlans" class="form-control" placeholder="Введите код ВСП...">
+                                <button class="btn btn-sber-primary" id="getPlansBtn">
+                                    <i class="fas fa-search me-2"></i>Найти планы
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading-spinner" id="plansLoading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <p>Загрузка данных о планах работ...</p>
+                </div>
+
+                <div class="table-responsive fade-in">
+                    <table id="plansTable" class="table table-hover" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Код ВСП</th>
+                                <th>ID объекта</th>
+                                <th>Тип работы</th>
+                                <th>Частота</th>
+                                <th>Следующая дата</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Вкладка Выполненные работы -->
+            <div class="tab-pane fade" id="works" role="tabpanel">
+                <div class="search-container fade-in">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                                <input type="text" id="branchCodeForWorks" class="form-control" placeholder="Введите код ВСП...">
+                                <button class="btn btn-sber-primary" id="getWorksBtn">
+                                    <i class="fas fa-search me-2"></i>Найти работы
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading-spinner" id="worksLoading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <p>Загрузка данных о выполненных работах...</p>
+                </div>
+
+                <div class="table-responsive fade-in">
+                    <table id="worksTable" class="table table-hover" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Код ВСП</th>
+                                <th>ID объекта</th>
+                                <th>Тип работы</th>
+                                <th>Дата выполнения</th>
+                                <th>Ответственный</th>
+                                <th>Примечания</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Вкладка Вложения -->
+            <div class="tab-pane fade" id="attachments" role="tabpanel">
+                <div class="search-container fade-in">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                                <input type="text" id="branchCodeForAttachments" class="form-control" placeholder="Введите код ВСП...">
+                                <button class="btn btn-sber-primary" id="getAttachmentsBtn">
+                                    <i class="fas fa-search me-2"></i>Найти
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-filter"></i></span>
+                                <select id="attachmentTypeFilter" class="form-select">
+                                    <option value="">Все типы</option>
+                                    <option value="photo">Фото</option>
+                                    <option value="scheme">Схема</option>
+                                    <option value="plan">План</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading-spinner" id="attachmentsLoading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <p>Загрузка данных о вложениях...</p>
+                </div>
+
+                <div class="table-responsive fade-in">
+                    <table id="attachmentsTable" class="table table-hover" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Код ВСП</th>
+                                <th>ID объекта</th>
+                                <th>Тип файла</th>
+                                <th>Имя файла</th>
+                                <th>Дата загрузки</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для просмотра схем -->
+    <div class="modal fade" id="schemeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-project-diagram me-2"></i>Просмотр схемы</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="schemeImage" src="" class="img-fluid rounded" alt="Схема территории" style="max-height: 70vh;">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sber-outline" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Закрыть
+                    </button>
+                    <a id="downloadSchemeBtn" href="#" class="btn btn-sber-primary" download>
+                        <i class="fas fa-download me-2"></i>Скачать
+                    </a>
+                    <button type="button" class="btn btn-sber-primary" id="fullscreenSchemeBtn">
+                        <i class="fas fa-expand me-2"></i>На весь экран
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для просмотра схемы на весь экран -->
+    <div class="modal fade" id="fullscreenModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fullscreenModalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body d-flex justify-content-center align-items-center">
+                    <img id="fullscreenImage" src="" class="modal-image" alt="">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sber-outline" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Закрыть
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для результатов импорта -->
+    <div class="modal fade" id="importResultsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-file-excel me-2"></i>Результаты импорта</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-success" id="importSuccessAlert" style="display: none;">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span id="successMessage"></span>
+                    </div>
+                    <div class="alert alert-danger" id="importErrorAlert" style="display: none;">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="errorMessage"></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="importResultsTable">
+                            <thead>
+                                <tr>
+                                    <th>Код ВСП</th>
+                                    <th>Статус</th>
+                                    <th>Детали</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sber-primary" data-bs-dismiss="modal">
+                        <i class="fas fa-check me-2"></i>Закрыть
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedcolumns/3.3.3/js/dataTables.fixedColumns.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Инициализация DataTables
+            const initDataTable = (tableId, columns) => {
+                return $(tableId).DataTable({
+                    language: {
+                        url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/ru.json'
+                    },
+                    autoWidth: false,
+                    columns: columns,
+                    dom: '<"top"f>rt<"bottom"lip><"clear">',
+                    responsive: true
+                });
+            };
+
+            // Таблица ВСП
+            const branchesTable = initDataTable('#branchesTable', [
+                { data: 'internal_code', title: 'Код ВСП' },
+                { data: 'address', title: 'Адрес' },
+                {
+                    data: 'responsible_person',
+                    title: 'Ответственный СМ',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'legal_area',
+                    title: 'Площадь (документы)',
+                    render: function(data) {
+                        return data !== null ? data + ' м²' : '-';
+                    }
+                },
+                {
+                    data: 'summer_area',
+                    title: 'Площадь ЛЕТО',
+                    render: function(data) {
+                        return data !== null ? data + ' м²' : '-';
+                    }
+                },
+                {
+                    data: 'winter_area',
+                    title: 'Площадь ЗИМА',
+                    render: function(data) {
+                        return data !== null ? data + ' м²' : '-';
+                    }
+                },
+                {
+                    data: 'municipal_area',
+                    title: 'Доп. территория (муниципалитет)',
+                    render: function(data) {
+                        return data !== null ? data + ' м²' : '-';
+                    }
+                },
+                {
+                    data: 'client_area',
+                    title: 'Доп. территория (клиент)',
+                    render: function(data) {
+                        return data !== null ? data + ' м²' : '-';
+                    }
+                },
+                <!-- В таблице branchesTable измените колонку "Схема" на этот код: -->
+{
+    data: 'scheme',
+    title: 'Схема',
+    render: function(data, type, row) {
+        if (data && data.id) {
+            const previewUrl = `/api/branches/${encodeURIComponent(row.internal_code)}/attachments/${data.id}/preview`;
+            const downloadUrl = `/api/branches/${encodeURIComponent(row.internal_code)}/attachments/${data.id}/download`;
+
+            return `
+                <div class="d-flex align-items-center">
+                    <div class="thumbnail-container me-2">
+                        <img src="${previewUrl}"
+                             class="thumbnail-img view-scheme"
+                             data-url="${previewUrl}"
+                             data-download-url="${downloadUrl}"
+                             data-filename="${data.original_filename || 'scheme_' + row.internal_code + '.jpg'}"
+                             alt="Схема ВСП"
+                             onerror="this.src='/images/placeholder.jpg'">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-sber-primary view-scheme"
+                                data-url="${previewUrl}"
+                                data-download-url="${downloadUrl}"
+                                data-filename="${data.original_filename || 'scheme_' + row.internal_code + '.jpg'}">
+                            <i class="fas fa-eye me-1"></i>Просмотр
+                        </button>
+                        <a href="${downloadUrl}"
+                           class="btn btn-sm btn-sber-outline"
+                           download="${data.original_filename || 'scheme_' + row.internal_code + '.jpg'}">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        return '<span class="text-muted">Нет данных</span>';
+    }
+}
+
+            ]);
+
+            // Таблица объектов
+            const objectsTable = initDataTable('#objectsTable', [
+                    {
+                        data: 'id',
+                        title: 'ID',
+                        render: function(data) {
+                        return data || '-';
+                    }
+                    },
+                {
+                    data: 'branch_code',
+                    title: '№ ВСП',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'address',
+                    title: 'Адрес',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'responsible',
+                    title: 'Ответственный СМ',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'zone',
+                    title: 'Зона',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'surface_type',
+                    title: 'Тип поверхности',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'work_type',
+                    title: 'Вид работ',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'measure_unit',
+                    title: 'Ед.изм',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'work_volume',
+                    title: 'Объем работ',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'work_period',
+                    title: 'Период выполнения работ',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                }
+            ]);
+
+            // Таблица планов работ
+            const plansTable = initDataTable('#plansTable', [
+                { data: 'branch_code' },
+                {
+                    data: 'object_id',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                { data: 'work_type' },
+                { data: 'frequency' },
+                {
+                    data: 'next_maintenance_date',
+                    render: function(data) {
+                        return data ? new Date(data).toLocaleString() : '-';
+                    }
+                }
+            ]);
+
+            // Таблица выполненных работ
+            const worksTable = initDataTable('#worksTable', [
+                { data: 'branch_code' },
+                {
+                    data: 'object_id',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                { data: 'work_type' },
+                {
+                    data: 'completion_date',
+                    render: function(data) {
+                        return data ? new Date(data).toLocaleString() : '-';
+                    }
+                },
+                { data: 'responsible_person' },
+                {
+                    data: 'notes',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                }
+            ]);
+
+            // Таблица вложений
+            const attachmentsTable = initDataTable('#attachmentsTable', [
+                { data: 'id' },
+                { data: 'branch_code' },
+                {
+                    data: 'object_id',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'file_type',
+                    render: function(data) {
+                        const icons = {
+                            'photo': 'fa-image',
+                            'scheme': 'fa-project-diagram',
+                            'plan': 'fa-map',
+                            'document': 'fa-file-alt'
+                        };
+                        const icon = icons[data] || 'fa-file';
+                        return `<i class="fas ${icon} me-2"></i>${data}`;
+                    }
+                },
+                {
+                    data: 'original_filename',
+                    render: function(data) {
+                        return data || '-';
+                    }
+                },
+                {
+                    data: 'uploaded_at',
+                    render: function(data) {
+                        return data ? new Date(data).toLocaleString() : '-';
+                    }
+                },
+                {
+                    data: null,
+                    render: function(data, type, row) {
+                        const downloadUrl = `/api/branches/${encodeURIComponent(row.branch_code)}/attachments/${row.id}/download`;
+                        const previewUrl = `${downloadUrl}?preview=true`;
+
+                        // Для изображений добавляем миниатюру
+                        if (['photo', 'scheme', 'plan'].includes(row.file_type)) {
+                            return `
+                                <div class="d-flex align-items-center">
+                                    <div class="thumbnail-container me-2">
+                                        <img src="${previewUrl}"
+                                             class="thumbnail-img view-attachment"
+                                             data-id="${row.id}"
+                                             data-branch="${row.branch_code}"
+                                             data-type="${row.file_type}"
+                                             data-filename="${row.original_filename}"
+                                             alt="${row.original_filename}">
+                                    </div>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-sber-primary view-attachment"
+                                                data-id="${row.id}"
+                                                data-branch="${row.branch_code}"
+                                                data-type="${row.file_type}"
+                                                data-filename="${row.original_filename}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="${downloadUrl}"
+                                           class="btn btn-sm btn-sber-outline"
+                                           download="${row.original_filename}">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-sber-primary view-attachment"
+                                            data-id="${row.id}"
+                                            data-branch="${row.branch_code}"
+                                            data-type="${row.file_type}"
+                                            data-filename="${row.original_filename}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="${downloadUrl}"
+                                       class="btn btn-sm btn-sber-outline"
+                                       download="${row.original_filename}">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    },
+                    orderable: false
+                }
+            ]);
+
+            // Обработчики событий для ВСП
+            $('#searchBranchesBtn').click(function() {
+                const searchTerm = $('#branchSearch').val();
+                fetchBranches(searchTerm);
+            });
+
+            $('#getAllBranchesBtn').click(function() {
+                $('#branchSearch').val('');
+                fetchBranches('');
+            });
+
+            // Обработчики событий для объектов
+            $('#getObjectsBtn').click(function() {
+                const branchCode = $('#branchCodeForObjects').val();
+                if (branchCode) {
+                    fetchObjects(branchCode);
+                } else {
+                    showAlert('Пожалуйста, введите код ВСП', 'warning');
+                }
+            });
+
+            $('#getAllObjectsBtn').click(function() {
+                $('#branchCodeForObjects').val('');
+                fetchAllObjects();
+            });
+
+            // Обработчики событий для планов работ
+            $('#getPlansBtn').click(function() {
+                const branchCode = $('#branchCodeForPlans').val();
+                if (branchCode) {
+                    fetchPlans(branchCode);
+                } else {
+                    showAlert('Пожалуйста, введите код ВСП', 'warning');
+                }
+            });
+
+            // Обработчики событий для выполненных работ
+            $('#getWorksBtn').click(function() {
+                const branchCode = $('#branchCodeForWorks').val();
+                if (branchCode) {
+                    fetchWorks(branchCode);
+                } else {
+                    showAlert('Пожалуйста, введите код ВСП', 'warning');
+                }
+            });
+
+            // Обработчики событий для вложений
+            $('#getAttachmentsBtn').click(function() {
+                const branchCode = $('#branchCodeForAttachments').val();
+                const fileType = $('#attachmentTypeFilter').val();
+                if (branchCode) {
+                    fetchAttachments(branchCode, fileType || undefined);
+                } else {
+                    showAlert('Пожалуйста, введите код ВСП', 'warning');
+                }
+            });
+
+            // Просмотр схемы территории
+            $(document).on('click', '.view-scheme', function() {
+                const imageUrl = $(this).data('url');
+                const filename = $(this).data('filename');
+
+                // Устанавливаем изображение
+                $('#schemeImage').attr('src', imageUrl)
+                    .on('error', function() {
+                        console.error('Ошибка загрузки изображения');
+                        $(this).attr('src', '/placeholder.jpg');
+                        showAlert('Не удалось загрузить изображение', 'danger');
+                    });
+
+                // Настраиваем кнопку скачивания
+                $('#downloadSchemeBtn').attr('href', imageUrl.replace('?preview=true', ''))
+                    .attr('download', filename);
+
+                // Устанавливаем заголовок
+                $('.modal-title').html(`<i class="fas fa-project-diagram me-2"></i>${filename}`);
+
+                // Показываем модальное окно
+                const schemeModal = new bootstrap.Modal(document.getElementById('schemeModal'));
+                schemeModal.show();
+            });
+
+            // Просмотр вложений
+            $(document).on('click', '.view-attachment', function() {
+                const attachmentId = $(this).data('id');
+                const branchCode = $(this).data('branch');
+                const fileType = $(this).data('type');
+                const filename = $(this).data('filename');
+
+                const previewUrl = `/api/branches/${encodeURIComponent(branchCode)}/attachments/${attachmentId}/download?preview=true`;
+                const downloadUrl = `/api/branches/${encodeURIComponent(branchCode)}/attachments/${attachmentId}/download`;
+
+                // Для изображений показываем в модальном окне
+                if (['photo', 'scheme', 'plan'].includes(fileType)) {
+                    $('#schemeImage').attr('src', previewUrl)
+                        .on('error', function() {
+                            console.error('Ошибка загрузки изображения');
+                            $(this).attr('src', '/placeholder.jpg');
+                            showAlert('Не удалось загрузить изображение', 'danger');
+                        });
+
+                    $('#downloadSchemeBtn').attr('href', downloadUrl)
+                        .attr('download', filename);
+
+                    $('.modal-title').html(`<i class="fas fa-${fileType === 'photo' ? 'image' : 'project-diagram'} me-2"></i>${filename}`);
+
+                    const schemeModal = new bootstrap.Modal(document.getElementById('schemeModal'));
+                    schemeModal.show();
+                } else {
+                    // Для других типов файлов просто скачиваем
+                    window.location.href = downloadUrl;
+                }
+            });
+
+            // Кнопка "На весь экран" в модальном окне схемы
+            $('#fullscreenSchemeBtn').click(function() {
+                const imageUrl = $('#schemeImage').attr('src');
+                const filename = $('.modal-title').text();
+
+                $('#fullscreenImage').attr('src', imageUrl);
+                $('#fullscreenModalTitle').text(filename);
+
+                const fullscreenModal = new bootstrap.Modal(document.getElementById('fullscreenModal'));
+                fullscreenModal.show();
+            });
+
+            function fetchBranches(searchTerm = '') {
+                $('#branchesLoading').show();
+                branchesTable.clear().draw();
+
+                $.get(`/api/branches?search=${encodeURIComponent(searchTerm)}`, function(branches) {
+                    const branchPromises = branches.map(branch => {
+                        return $.get(`/api/branches/${encodeURIComponent(branch.internal_code)}/territory`)
+                            .then(territory => {
+                                // Добавляем проверку на наличие схемы
+                                let schemeData = null;
+                                if (territory.scheme_attachment_id) {
+                                    return $.get(`/api/branches/${encodeURIComponent(branch.internal_code)}/attachments/${territory.scheme_attachment_id}`)
+                                        .then(attachment => {
+                                            schemeData = {
+                                                id: territory.scheme_attachment_id,
+                                                original_filename: attachment.original_filename
+                                            };
+                                            return {
+                                                ...branch,
+                                                responsible_person: territory.responsible_person,
+                                                legal_area: territory.legal_area,
+                                                summer_area: territory.summer_area,
+                                                winter_area: territory.winter_area,
+                                                municipal_area: territory.municipal_area,
+                                                client_area: territory.client_area,
+                                                scheme: schemeData
+                                            };
+                                        });
+                                } else {
+                                    return {
+                                        ...branch,
+                                        responsible_person: territory.responsible_person,
+                                        legal_area: territory.legal_area,
+                                        summer_area: territory.summer_area,
+                                        winter_area: territory.winter_area,
+                                        municipal_area: territory.municipal_area,
+                                        client_area: territory.client_area,
+                                        scheme: null
+                                    };
+                                }
+                            })
+                            .catch(() => ({
+                                ...branch,
+                                responsible_person: null,
+                                legal_area: null,
+                                summer_area: null,
+                                winter_area: null,
+                                municipal_area: null,
+                                client_area: null,
+                                scheme: null
+                            }));
+                    });
+
+                    Promise.all(branchPromises)
+                        .then(enhancedBranches => {
+                            branchesTable.rows.add(enhancedBranches).draw();
+                            $('#branchesLoading').hide();
+                            animateElements();
+                        });
+                }).fail(function(error) {
+                    showAlert('Ошибка при загрузке ВСП: ' + (error.responseJSON?.detail || error.statusText), 'danger');
+                    $('#branchesLoading').hide();
+                });
+            }
+
+function fetchObjects(branchCode) {
+    $('#objectsLoading').show();
+    objectsTable.clear().draw();
+
+    $.get(`/api/branches/by-code/${encodeURIComponent(branchCode)}/objects`, function(data) {
+        // Добавляем ID к каждому объекту (если его нет в ответе API)
+        const enrichedData = data.map((obj, index) => {
+            return {
+                id: obj.id || generateUniqueId(), // Генерация ID если нет
+                ...obj
+            };
+        });
+
+        objectsTable.rows.add(enrichedData).draw();
+        $('#objectsLoading').hide();
+    }).fail(function(error) {
+        showAlert('Ошибка при загрузке объектов: ' + error.statusText, 'danger');
+        $('#objectsLoading').hide();
+    });
+}
+
+// Вспомогательная функция для генерации ID
+function generateUniqueId() {
+    return 'obj-' + Math.random().toString(36).substr(2, 9);
+}
+
+            function fetchAllObjects() {
+                $('#objectsLoading').show();
+                objectsTable.clear().draw();
+
+                $.get(`/api/branches`, function(branches) {
+                    const branchCodes = branches.map(b => b.internal_code);
+                    const objectPromises = branchCodes.map(code => {
+                        return $.get(`/api/branches/by-code/${encodeURIComponent(code)}/objects`)
+                            .then(objects => objects)
+                            .catch(() => []);
+                    });
+
+                    Promise.all(objectPromises)
+                        .then(results => {
+                            const allObjects = results.flat();
+                            objectsTable.rows.add(allObjects).draw();
+                            $('#objectsLoading').hide();
+                            animateElements();
+                        });
+                }).fail(function(error) {
+                    showAlert('Ошибка при загрузке объектов: ' + (error.responseJSON?.detail || error.statusText), 'danger');
+                    $('#objectsLoading').hide();
+                });
+            }
+
+            function fetchPlans(branchCode) {
+                $('#plansLoading').show();
+                plansTable.clear().draw();
+
+                $.get(`/api/branches/by-code/${encodeURIComponent(branchCode)}/plans`, function(data) {
+                    plansTable.rows.add(data).draw();
+                    $('#plansLoading').hide();
+                    animateElements();
+                }).fail(function(error) {
+                    showAlert('Ошибка при загрузке планов: ' + (error.responseJSON?.detail || error.statusText), 'danger');
+                    $('#plansLoading').hide();
+                });
+            }
+
+            function fetchWorks(branchCode) {
+                $('#worksLoading').show();
+                worksTable.clear().draw();
+
+                $.get(`/api/branches/by-code/${encodeURIComponent(branchCode)}/completed-works`, function(data) {
+                    worksTable.rows.add(data).draw();
+                    $('#worksLoading').hide();
+                    animateElements();
+                }).fail(function(error) {
+                    showAlert('Ошибка при загрузке работ: ' + (error.responseJSON?.detail || error.statusText), 'danger');
+                    $('#worksLoading').hide();
+                });
+            }
+
+            function fetchAttachments(branchCode, fileType) {
+                $('#attachmentsLoading').show();
+                attachmentsTable.clear().draw();
+
+                let url = `/api/branches/${encodeURIComponent(branchCode)}/attachments`;
+                if (fileType) {
+                    url += `?file_type=${encodeURIComponent(fileType)}`;
+                }
+
+                $.get(url, function(data) {
+                    attachmentsTable.rows.add(data).draw();
+                    $('#attachmentsLoading').hide();
+                    animateElements();
+                }).fail(function(error) {
+                    showAlert('Ошибка при загрузке вложений: ' + (error.responseJSON?.detail || error.statusText), 'danger');
+                    $('#attachmentsLoading').hide();
+                });
+            }
+
+            // Логика для импорта Excel
+            let selectedTerritoriesFile = null;
+            let selectedObjectsFile = null;
+
+            // Инициализация элементов для территорий
+            const territoriesDropZone = document.getElementById('territoriesDropZone');
+            const territoriesFileInput = document.getElementById('territoriesFileInput');
+            const selectTerritoriesFileBtn = document.getElementById('selectTerritoriesFileBtn');
+            const uploadTerritoriesBtn = document.getElementById('uploadTerritoriesBtn');
+            const cancelTerritoriesUploadBtn = document.getElementById('cancelTerritoriesUploadBtn');
+            const territoriesFileInfo = document.getElementById('territoriesFileInfo');
+            const territoriesFileName = document.getElementById('territoriesFileName');
+            const territoriesFileSize = document.getElementById('territoriesFileSize');
+            const territoriesUploadProgress = document.getElementById('territoriesUploadProgress');
+
+            // Инициализация элементов для объектов
+            const objectsDropZone = document.getElementById('objectsDropZone');
+            const objectsFileInput = document.getElementById('objectsFileInput');
+            const selectObjectsFileBtn = document.getElementById('selectObjectsFileBtn');
+            const uploadObjectsBtn = document.getElementById('uploadObjectsBtn');
+            const cancelObjectsUploadBtn = document.getElementById('cancelObjectsUploadBtn');
+            const objectsFileInfo = document.getElementById('objectsFileInfo');
+            const objectsFileName = document.getElementById('objectsFileName');
+            const objectsFileSize = document.getElementById('objectsFileSize');
+            const objectsUploadProgress = document.getElementById('objectsUploadProgress');
+
+            // Обработчики для территорий
+            selectTerritoriesFileBtn.addEventListener('click', () => {
+                territoriesFileInput.click();
+            });
+
+            territoriesFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleTerritoriesFile(e.target.files[0]);
+                }
+            });
+
+            // Обработчики для объектов
+            selectObjectsFileBtn.addEventListener('click', () => {
+                objectsFileInput.click();
+            });
+
+            objectsFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleObjectsFile(e.target.files[0]);
+                }
+            });
+
+            // Drag and drop для территорий
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                territoriesDropZone.addEventListener(eventName, preventDefaults, false);
+                objectsDropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                territoriesDropZone.addEventListener(eventName, () => highlight(territoriesDropZone), false);
+                objectsDropZone.addEventListener(eventName, () => highlight(objectsDropZone), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                territoriesDropZone.addEventListener(eventName, () => unhighlight(territoriesDropZone), false);
+                objectsDropZone.addEventListener(eventName, () => unhighlight(objectsDropZone), false);
+            });
+
+            territoriesDropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const file = dt.files[0];
+                handleTerritoriesFile(file);
+            });
+
+            objectsDropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const file = dt.files[0];
+                handleObjectsFile(file);
+            });
+
+            function highlight(element) {
+                element.classList.add('active');
+            }
+
+            function unhighlight(element) {
+                element.classList.remove('active');
+            }
+
+            function handleTerritoriesFile(file) {
+                const validExtensions = ['.xlsx', '.xls'];
+                const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+                if (!validExtensions.includes(fileExt)) {
+                    showAlert('Пожалуйста, выберите файл Excel (.xlsx или .xls)', 'danger');
+                    return;
+                }
+
+                selectedTerritoriesFile = file;
+                displayFileInfo(file, territoriesFileName, territoriesFileSize, territoriesFileInfo);
+            }
+
+            function handleObjectsFile(file) {
+                const validExtensions = ['.xlsx', '.xls'];
+                const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+                if (!validExtensions.includes(fileExt)) {
+                    showAlert('Пожалуйста, выберите файл Excel (.xlsx или .xls)', 'danger');
+                    return;
+                }
+
+                selectedObjectsFile = file;
+                displayFileInfo(file, objectsFileName, objectsFileSize, objectsFileInfo);
+            }
+
+            function displayFileInfo(file, nameElement, sizeElement, infoElement) {
+                nameElement.textContent = file.name;
+                sizeElement.textContent = formatFileSize(file.size);
+                infoElement.classList.add('show');
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            cancelTerritoriesUploadBtn.addEventListener('click', () => {
+                resetFileUpload('territories');
+            });
+
+            cancelObjectsUploadBtn.addEventListener('click', () => {
+                resetFileUpload('objects');
+            });
+
+            function resetFileUpload(type) {
+                if (type === 'territories') {
+                    selectedTerritoriesFile = null;
+                    territoriesFileInput.value = '';
+                    territoriesFileInfo.classList.remove('show');
+                    territoriesUploadProgress.style.width = '0%';
+                } else {
+                    selectedObjectsFile = null;
+                    objectsFileInput.value = '';
+                    objectsFileInfo.classList.remove('show');
+                    objectsUploadProgress.style.width = '0%';
+                }
+            }
+
+            uploadTerritoriesBtn.addEventListener('click', () => {
+                if (!selectedTerritoriesFile) {
+                    showAlert('Пожалуйста, выберите файл для загрузки', 'warning');
+                    return;
+                }
+
+                uploadFile(selectedTerritoriesFile, 'territories');
+            });
+
+            uploadObjectsBtn.addEventListener('click', () => {
+                if (!selectedObjectsFile) {
+                    showAlert('Пожалуйста, выберите файл для загрузки', 'warning');
+                    return;
+                }
+
+                uploadFile(selectedObjectsFile, 'objects');
+            });
+
+            function uploadFile(file, type) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const xhr = new XMLHttpRequest();
+                const progressElement = type === 'territories' ? territoriesUploadProgress : objectsUploadProgress;
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressElement.style.width = percentComplete + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        showImportResults(response.results);
+
+                        // Обновляем соответствующую таблицу после импорта
+                        if (type === 'territories') {
+                            fetchBranches();
+                        } else {
+                            fetchAllObjects();
+                        }
+                    } else {
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            showAlert('Ошибка при загрузке файла: ' + (errorResponse.detail || xhr.statusText), 'danger');
+                        } catch (e) {
+                            showAlert('Ошибка при загрузке файла: ' + xhr.statusText, 'danger');
+                        }
+                    }
+                    resetFileUpload(type);
+                });
+
+                xhr.addEventListener('error', () => {
+                    showAlert('Ошибка при загрузке файла', 'danger');
+                    resetFileUpload(type);
+                });
+
+                const endpoint = type === 'territories' ? '/api/upload/territories' : '/api/upload/objects';
+                xhr.open('POST', endpoint, true);
+                xhr.send(formData);
+            }
+
+            // Показать результаты импорта
+            function showImportResults(results) {
+                const modal = new bootstrap.Modal(document.getElementById('importResultsModal'));
+                const resultsTable = $('#importResultsTable tbody');
+                resultsTable.empty();
+
+                let successCount = 0;
+                let errorCount = 0;
+
+                results.forEach(result => {
+                    const row = $('<tr>');
+                    row.append($('<td>').text(result.branch_code || '-'));
+
+                    if (result.status === 'success') {
+                        successCount++;
+                        row.append($('<td>').html('<span class="badge bg-success">Успешно</span>'));
+                        row.append($('<td>').text(result.message || 'Данные успешно импортированы'));
+                    } else {
+                        errorCount++;
+                        row.append($('<td>').html('<span class="badge bg-danger">Ошибка</span>'));
+                        row.append($('<td>').text(result.error || 'Неизвестная ошибка'));
+                    }
+
+                    resultsTable.append(row);
+                });
+
+                if (errorCount === 0) {
+                    $('#importSuccessAlert').show();
+                    $('#importErrorAlert').hide();
+                    $('#successMessage').text(`Успешно импортировано ${successCount} записей`);
+                } else if (successCount === 0) {
+                    $('#importSuccessAlert').hide();
+                    $('#importErrorAlert').show();
+                    $('#errorMessage').text(`Ошибка при импорте всех ${errorCount} записей`);
+                } else {
+                    $('#importSuccessAlert').show();
+                    $('#importErrorAlert').show();
+                    $('#successMessage').text(`Успешно импортировано ${successCount} записей`);
+                    $('#errorMessage').text(`Ошибка при импорте ${errorCount} записей`);
+                }
+
+                modal.show();
+            }
+
+            // Вспомогательные функции
+            function showAlert(message, type = 'info') {
+                const alert = $(`
+                    <div class="alert alert-${type} alert-dismissible fade show position-fixed"
+                         style="position: fixed; top: 20px; right: 20px; z-index: 1100; min-width: 300px;">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `);
+
+                $('body').append(alert);
+                setTimeout(() => {
+                    alert.alert('close');
+                }, 5000);
+            }
+
+            function animateElements() {
+                $('.fade-in').css('opacity', 0).each(function(index) {
+                    $(this).delay(100 * index).animate({ opacity: 1 }, 300);
+                });
+            }
+
+            // Загрузить все ВСП при первой загрузке
+            fetchBranches();
+        });
+    </script>
+</body>
+</html>
